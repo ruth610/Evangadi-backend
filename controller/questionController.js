@@ -19,7 +19,7 @@ async function postQuestion(req, res) {
     const questionid = uuidv4();
     ///////
     const [existingQuestion] = await dbConnection.query(
-      "SELECT * FROM questionTabel WHERE title = ? AND description = ?",
+      "SELECT * FROM questionTable WHERE title = ? AND description = ?",
       [title, description]
     );
     if (existingQuestion.length > 0) {
@@ -30,7 +30,7 @@ async function postQuestion(req, res) {
     //here first we have to insert our data into the question table
 
     await dbConnection.query(
-      `INSERT INTO questionTabel(userid,questionid,description,title,tag) VALUES(?,?,?,?,?)`,
+      `INSERT INTO questionTable(userid,questionid,description,title,tag) VALUES(?,?,?,?,?)`,
       [userid, questionid, description, title, tagToInsert]
     );
     return res.status(StatusCodes.CREATED).json({
@@ -51,12 +51,12 @@ async function getallQuestion(req, res) {
     const offset = parseInt(req.query.offset) || 0;
     const [questionsRow] = await dbConnection.query(
       `SELECT 
-        questionTabel.id, questionTabel.created_at,questionTabel.questionid, questionTabel.title, questionTabel.description as content, questionTabel.userid,  
+        questionTable.id, questionTable.created_at,questionTable.questionid, questionTable.title, questionTable.description as content, questionTable.userid,  
         userTable.username, userTable.firstname, userTable.lastname,
-        (SELECT COUNT(*) FROM answerTable WHERE answerTable.questionid = questionTabel.questionid) AS total_answers
-      FROM questionTabel
-      JOIN userTable ON questionTabel.userid = userTable.userid
-      ORDER BY questionTabel.id DESC LIMIT ? OFFSET ?`,[limit,offset]
+        (SELECT COUNT(*) FROM answerTable WHERE answerTable.questionid = questionTable.questionid) AS total_answers
+      FROM questionTable
+      JOIN userTable ON questionTable.userid = userTable.userid
+      ORDER BY questionTable.id DESC LIMIT ? OFFSET ?`,[limit,offset]
     );
     console.log("Limit:", limit, "Offset:", offset); // Log the limit and offset in the backend
     // Check if any questions are available
@@ -64,7 +64,7 @@ async function getallQuestion(req, res) {
       return res.status(StatusCodes.OK).json([]);
     }
     const [[countResult]] = await dbConnection.query(
-            "SELECT COUNT(*) as total FROM questionTabel"
+            "SELECT COUNT(*) as total FROM questionTable"
           );
 
     return res.status(StatusCodes.OK).json({questions:questionsRow,total:countResult.total});
@@ -83,7 +83,7 @@ async function singleQuestion(req, res) {
         console.log(req.params); 
         console.log(question_id);
         const [rows] = await dbConnection.query(
-          `SELECT questionid,title,created_at, description AS content,userid AS user_id FROM questionTabel WHERE questionid = ?`,
+          `SELECT questionid,title,created_at, description AS content,userid AS user_id FROM questionTable WHERE questionid = ?`,
           [question_id]
         );
 
